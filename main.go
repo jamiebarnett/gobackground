@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/jamiebarnett/gobackground/response"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
+
+	"github.com/jamiebarnett/gobackground/response"
+
 	"fmt"
+	"os/exec"
+	"strconv"
 )
 
 const (
@@ -39,8 +42,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, img := range body.Data {
+	for i, img := range body.Data {
+
 		if img.Nsfw != true {
+
 			req, err := http.NewRequest("GET", img.Link, nil)
 			if err != nil {
 				log.Fatal(err)
@@ -50,22 +55,23 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			defer res.Body.Close()
 
-			file, err := os.Create("img/"+img.Title+".jpg")
+			file, err := os.Create("img/" + strconv.Itoa(i) + ".jpg")
 			if err != nil {
-				log.Panic("error creating file", err)
+				log.Fatal("error creating file", err)
 			}
 
 			_, err = io.Copy(file, res.Body)
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			res.Body.Close()
 			file.Close()
 		}
 	}
 
-	out, err := exec.Command("~/switchbg.sh").Output()
+	out, err := exec.Command("switchbg.sh").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
