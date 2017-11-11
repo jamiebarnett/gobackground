@@ -1,17 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/jamiebarnett/gobackground/response"
-
-	"fmt"
 	"os/exec"
 	"strconv"
+
+	"github.com/jamiebarnett/gobackground/response"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -71,9 +71,19 @@ func main() {
 		}
 	}
 
-	out, err := exec.Command("switchbg.sh").Output()
+	db, err := sql.Open("sqlite3", "/Users/jamiebarnett/Library/Application Support/Dock/desktoppicture.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("output is %s\n", out)
+
+	_, err = db.Exec("UPDATE data SET value = './img/1.jpg';")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = exec.Command("bash", "-c", "killall Dock").Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
