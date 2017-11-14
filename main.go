@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
+
+	"math/rand"
 
 	"github.com/jamiebarnett/gobackground/response"
 	_ "github.com/mattn/go-sqlite3"
@@ -23,53 +24,57 @@ func main() {
 
 	url := "https://api.imgur.com/3/gallery/r/wallpaper/top/day"
 
-	req, err := http.NewRequest("GET", url, nil)
+	galleryReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req.Header.Add("authorization", "Client-ID "+clientID)
+	galleryReq.Header.Add("authorization", "Client-ID "+clientID)
 
-	res, err := http.DefaultClient.Do(req)
+	galleryRes, err := http.DefaultClient.Do(galleryReq)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer res.Body.Close()
+	defer galleryRes.Body.Close()
 
 	body := new(response.Images)
-	err = json.NewDecoder(res.Body).Decode(body)
+	err = json.NewDecoder(galleryRes.Body).Decode(body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for i, img := range body.Data {
+	ran := rand.Intn(len(body.Data))
+	log.Println(ran)
+	var link string
 
-		if img.Nsfw != true {
-
-			req, err := http.NewRequest("GET", img.Link, nil)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			res, err := http.DefaultClient.Do(req)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			file, err := os.Create("img/" + strconv.Itoa(i) + ".jpg")
-			if err != nil {
-				log.Fatal("error creating file", err)
-			}
-
-			_, err = io.Copy(file, res.Body)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			res.Body.Close()
-			file.Close()
+	for i, inst := range body.Data {
+		if i == ran {
+			link = inst.Link
+			log.Println(link)
 		}
 	}
+
+	imgReq, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	imgRes, err := http.DefaultClient.Do(imgReq)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer imgRes.Body.Close()
+
+	file, err := os.Create("img/back.jpg")
+	if err != nil {
+		log.Fatal("error creating file", err)
+	}
+
+	_, err = io.Copy(file, imgRes.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Close()
 
 	db, err := sql.Open("sqlite3", "/Users/jamiebarnett/Library/Application Support/Dock/desktoppicture.db")
 	if err != nil {
