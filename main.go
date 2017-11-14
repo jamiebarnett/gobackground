@@ -1,18 +1,17 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
-
 	"math/rand"
 
 	"github.com/jamiebarnett/gobackground/response"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 const (
@@ -29,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	galleryReq.Header.Add("authorization", "Client-ID "+clientID)
+	galleryReq.Header.Add("authorization", "Client-ID " + clientID)
 
 	galleryRes, err := http.DefaultClient.Do(galleryReq)
 	if err != nil {
@@ -43,8 +42,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	rand.Seed(time.Now().UnixNano())
 	ran := rand.Intn(len(body.Data))
-	log.Println(ran)
+	
 	var link string
 
 	for i, inst := range body.Data {
@@ -76,17 +76,8 @@ func main() {
 	}
 	file.Close()
 
-	db, err := sql.Open("sqlite3", "/Users/jamiebarnett/Library/Application Support/Dock/desktoppicture.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec("UPDATE data SET value = './img/1.jpg';")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = exec.Command("bash", "-c", "killall Dock").Run()
+	//works for OSX sierra
+	err = exec.Command("bash", "-c", "sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = './back.jpg'\" && killall Dock").Run()
 	if err != nil {
 		log.Fatal(err)
 	}
