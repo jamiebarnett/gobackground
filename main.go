@@ -23,28 +23,28 @@ func main() {
 
 	url := "https://api.imgur.com/3/gallery/r/wallpaper/top/day"
 
-	galleryReq, err := http.NewRequest("GET", url, nil)
+	rq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	galleryReq.Header.Add("authorization", "Client-ID " + clientID)
+	rq.Header.Add("authorization", "Client-ID " + clientID)
 
-	galleryRes, err := http.DefaultClient.Do(galleryReq)
+	rs, err := http.DefaultClient.Do(rq)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer galleryRes.Body.Close()
+	defer rs.Body.Close()
 
 	body := new(response.Images)
-	err = json.NewDecoder(galleryRes.Body).Decode(body)
+	err = json.NewDecoder(rs.Body).Decode(body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	rand.Seed(time.Now().UnixNano())
 	ran := rand.Intn(len(body.Data))
-	
+
 	var link string
 
 	for i, inst := range body.Data {
@@ -54,32 +54,32 @@ func main() {
 		}
 	}
 
-	imgReq, err := http.NewRequest("GET", link, nil)
+	imgrq, err := http.NewRequest("GET", link, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	imgRes, err := http.DefaultClient.Do(imgReq)
+	imgrs, err := http.DefaultClient.Do(imgrq)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer imgRes.Body.Close()
+	defer imgrs.Body.Close()
 
 	file, err := os.Create("img/back.jpg")
 	if err != nil {
 		log.Fatal("error creating file", err)
 	}
 
-	_, err = io.Copy(file, imgRes.Body)
+	_, err = io.Copy(file, imgrs.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 	file.Close()
 
 	//works for OSX sierra
-	err = exec.Command("bash", "-c", "sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = './back.jpg'\" && killall Dock").Run()
+	err = exec.Command("bash", "-c",
+		"sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = './back.jpg'\" && killall Dock").Run()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
