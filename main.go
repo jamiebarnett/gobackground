@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	//"database/sql"
 	"encoding/json"
 	"io"
 	"log"
@@ -71,7 +71,7 @@ func main() {
 		}
 	}
 
-	db, err := sql.Open("sqlite3", "/Users/jamiebarnett/Library/Application Support/Dock/desktoppicture.db")
+	/*db, err := sql.Open("sqlite3", "~/Library/Application\\ Support/Dock/desktoppicture.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,9 +79,9 @@ func main() {
 	_, err = db.Exec("UPDATE data SET value = './img/1.jpg';")
 	if err != nil {
 		log.Fatal(err)
-	}
+	}*/
 
-	err = exec.Command("bash", "-c", "killall Dock").Run()
+	err = exec.Command("bash", "-c", "sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = '~/15.jpg'\" && killall Dock").Run()
 	if err != nil {
 		log.Fatal(err)
 	}
