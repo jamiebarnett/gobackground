@@ -21,7 +21,7 @@ const (
 
 func main() {
 
-	url := "https://api.imgur.com/3/gallery/r/wallpaper/top/day"
+	url := "https://api.imgur.com/3/gallery/r/wallpaper/top/day?mature=false"
 
 	rq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
