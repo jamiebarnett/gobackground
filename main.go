@@ -56,30 +56,30 @@ func main() {
 
 	imgrq, err := http.NewRequest("GET", link, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error creating image request ",err)
 	}
 
 	imgrs, err := http.DefaultClient.Do(imgrq)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error executing image request ",err)
 	}
 	defer imgrs.Body.Close()
 
 	file, err := os.Create("img/back.jpg")
 	if err != nil {
-		log.Fatal("error creating file", err)
+		log.Fatal("error creating file ", err)
 	}
 
 	_, err = io.Copy(file, imgrs.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error copying file ", err)
 	}
 	file.Close()
 
 	//works for OSX sierra
 	err = exec.Command("bash", "-c",
-		"sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = './back.jpg'\" && killall Dock").Run()
+		"sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = '~/go/src/github.com/jamiebarnett/gobackground/img/back.jpg'\" && killall Dock").Run()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error executing command ",err)
 	}
 }
