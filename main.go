@@ -51,9 +51,11 @@ func main() {
 
 	for i, inst := range body.Data {
 		if i == ran {
-			link = inst.Link
+			link = inst.Images[0].Link
 		}
 	}
+
+	log.Println(link)
 
 	imgrq, err := http.NewRequest("GET", link, nil)
 	if err != nil {
