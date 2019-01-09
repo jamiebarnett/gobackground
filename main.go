@@ -2,16 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
-	"math/rand"
+
+	"time"
 
 	"github.com/jamiebarnett/gobackground/response"
 	_ "github.com/mattn/go-sqlite3"
-	"time"
 )
 
 const (
@@ -28,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rq.Header.Add("authorization", "Client-ID " + clientID)
+	rq.Header.Add("authorization", "Client-ID "+clientID)
 
 	rs, err := http.DefaultClient.Do(rq)
 	if err != nil {
@@ -50,22 +52,25 @@ func main() {
 	for i, inst := range body.Data {
 		if i == ran {
 			link = inst.Link
-			log.Println(link)
 		}
 	}
 
 	imgrq, err := http.NewRequest("GET", link, nil)
 	if err != nil {
-		log.Fatal("error creating image request ",err)
+		log.Fatal("error creating image request ", err)
 	}
 
 	imgrs, err := http.DefaultClient.Do(imgrq)
 	if err != nil {
-		log.Fatal("error executing image request ",err)
+		log.Fatal("error executing image request ", err)
 	}
 	defer imgrs.Body.Close()
 
-	file, err := os.Create("img/back.jpg")
+	if _, err := os.Stat("img"); os.IsNotExist(err) {
+		os.Mkdir("img", 0777)
+	}
+
+	file, err := os.Create("./img/back.jpg")
 	if err != nil {
 		log.Fatal("error creating file ", err)
 	}
@@ -74,12 +79,17 @@ func main() {
 	if err != nil {
 		log.Fatal("error copying file ", err)
 	}
-	file.Close()
+	defer file.Close()
 
 	//works for OSX sierra
-	err = exec.Command("bash", "-c",
-		"sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = '~/go/src/github.com/jamiebarnett/gobackground/img/back.jpg'\" && killall Dock").Run()
+	command := fmt.Sprintf(
+		"sqlite3 ~/Library/Application\\ Support/Dock/desktoppicture.db \"update data set value = '%s/src/github.com/jamiebarnett/gobackground/img/back.jpg'\" && killall Dock",
+		os.Getenv("GOPATH"),
+	)
+
+	log.Println(command)
+	err = exec.Command("bash", "-c", command).Run()
 	if err != nil {
-		log.Fatal("error executing command ",err)
+		log.Fatal("error executing command ", err)
 	}
 }
